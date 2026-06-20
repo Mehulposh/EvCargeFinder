@@ -1,16 +1,27 @@
 const express = require('express');
-const Router = express.Router()
-const adminController = require('../controllers/adminController')
+const Router = express.Router();
+const adminController = require('../controllers/adminController');
+const adminAuth = require('../middleware/adminAuth');
 
-Router.post('/alogin',adminController.alogin)
-Router.post('/asignup',adminController.asignup)
-Router.get('/users',adminController.getUsers)
-Router.get('/user/:id',adminController.getUserById)
-Router.put('/userdelete/:id',adminController.updateUser)
-Router.delete('/userdelete/:id',adminController.deleteUser)
-Router.post('/chargestations',adminController.chargeStation)
-Router.get('/chargestations/:id',adminController.chargestationById)
-Router.put('/updatechargestation/:id',adminController.updatechargestation)
-Router.delete('/stationdelete/:id',adminController.deleteChargestation)
+// Public routes
+Router.post('/login', adminController.alogin);
+Router.post('/signup', adminController.asignup);
 
-module.exports=Router
+// Protected admin routes
+Router.get('/stats', adminAuth, adminController.getStats);
+
+Router.get('/users', adminAuth, adminController.getUsers);
+Router.get('/user/:id', adminAuth, adminController.getUserById);
+Router.get('/user/:id/bookings', adminAuth, adminController.getUserBookings);
+Router.put('/user/:id', adminAuth, adminController.updateUser);
+Router.delete('/user/:id', adminAuth, adminController.deleteUser);
+
+Router.post('/chargestation', adminAuth, adminController.chargeStation);
+Router.get('/chargestations', adminAuth, adminController.getChargeStations);
+Router.get('/chargestation/:id', adminAuth, adminController.chargestationById);
+Router.put('/chargestation/:id', adminAuth, adminController.updateChargestation);
+Router.delete('/chargestation/:id', adminAuth, adminController.deleteChargestation);
+
+Router.get('/bookings', adminAuth, adminController.getAllBookings);
+
+module.exports = Router;
