@@ -1,114 +1,86 @@
-// EditChargeStation.js
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate, useParams } from 'react-router-dom';
-import Anavbar from './Anavbar';
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import AdminLayout from './AdminLayout.jsx';
+import Toast, { useToast } from '../Components/Toast.jsx';
+import api from '../api/api.js';
 
-const EditUser = ({ }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email:'',
-    password:'6'
-  });
-
+const EditUser = () => {
   const { id } = useParams();
-
-  const navigate =useNavigate()
+  const navigate = useNavigate();
+  const { toasts, toast } = useToast();
+  const [form, setForm] = useState({ name: '', email: '' });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    axios.get(`http://localhost:7000/user/${id}`)
-      .then((response) => {
-        setFormData(response.data);
-      })
-      .catch((error) => {
-        console.error('Error fetching user data:', error);
-      });
+    const fetch = async () => {
+      try {
+        const { data } = await api.get(`/admin/user/${id}`);
+        setForm({ name: data.name, email: data.email });
+      } catch (err) {
+        toast.error('Failed to load user.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetch();
   }, [id]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setSaving(true);
     try {
-      await axios.put(`http://localhost:7000/updateuser/${id}`, formData);
-      console.log('user updated successfully');
-      alert('updated successfully')
-      navigate('/users'); // Redirect to the charge points page
-    } catch (error) {
-      console.error('Error updating user:', error);
+      await api.put(`/admin/user/${id}`, form);
+      toast.success('User updated successfully.');
+      setTimeout(() => navigate('/users'), 800);
+    } catch (err) {
+      toast.error('Failed to update user.');
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
-    <div>
-    <Anavbar/>
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className=" p-8 rounded shadow-md w-full md:w-1/2 lg:w-1/3  bg-gray-500">
-        <h2 className="text-3xl font-extrabold mb-6 text-gray-800">Create Charge Station</h2>
-        <form onSubmit={handleSubmit} >
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
-              Name:
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded shadow appearance-none text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              required
-            />
-          </div>  
+    <AdminLayout>
+      <Toast toasts={toasts} />
+      <div className="max-w-lg mx-auto">
+        <button onClick={() => navigate('/users')}
+          className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 mb-6 transition-colors">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Users
+        </button>
 
-           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
-              Email:
-            </label>
-            <input
-              type="text"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded shadow appearance-none text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              required
-            />
-          </div>
-
-           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
-              Password:
-            </label>
-            <input
-              type="text"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded shadow appearance-none text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              required
-            />
-          </div>       
-          <div className="mb-6">
-            <button
-              type="submit"
-              className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            >
-              Update
-            </button>
-          </div>
-        </form>
+        <div className="bg-white rounded-2xl border border-slate-200 p-6">
+          <h1 className="text-xl font-bold text-slate-900 mb-6">Edit User</h1>
+          {loading ? (
+            <div className="flex justify-center py-10">
+              <div className="w-6 h-6 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Full Name</label>
+                <input type="text" value={form.name} onChange={(e) => setForm(p => ({ ...p, name: e.target.value }))}
+                  required className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+                <input type="email" value={form.email} onChange={(e) => setForm(p => ({ ...p, email: e.target.value }))}
+                  required className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition" />
+              </div>
+              <button type="submit" disabled={saving}
+                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400
+                  text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">
+                {saving && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                {saving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </form>
+          )}
+        </div>
       </div>
-    </div>
-    </div>
+    </AdminLayout>
   );
 };
 
