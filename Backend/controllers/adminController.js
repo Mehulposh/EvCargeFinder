@@ -2,7 +2,7 @@ const Admin = require('../models/AdminSchema');
 const User = require('../models/UserSchema');
 const ChargingStation = require('../models/ChargeStation');
 const Booking = require('../models/BookingSchema');
-const signTokenAdmin = require('../helper/jwtSign')
+const {signTokenAdmin} = require('../helper/jwtSign')
 
 
 // POST /api/admin/login
