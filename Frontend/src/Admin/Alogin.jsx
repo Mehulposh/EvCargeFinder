@@ -1,127 +1,75 @@
 import React, { useState } from 'react';
-import { useNavigate,Link } from 'react-router-dom';
-import axios from 'axios';
-// import { FaSignOutAlt } from 'react-icons/fa';
-
-
+import { Link, useNavigate } from 'react-router-dom';
+import api from '../api/api';
+import { useAuth } from '../context/AuthContet';
+import Toast, { useToast } from '../Components/Toast';
 
 const Alogin = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [loading, setLoading] = useState(false);
+  const { loginAdmin } = useAuth();
   const navigate = useNavigate();
+  const { toasts, toast } = useToast();
 
-  axios.defaults.withCredentials = true;
+  const handleChange = (e) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    let payload = { email, password };
-    axios
-      .post("http://localhost:7000/alogin", payload)
-      .then((res) => {
-        console.log("login: " + res.data.Status);
-        if (res.data.Status === "Success") {
-          console.log(res.data.user);
-          localStorage.setItem('user', JSON.stringify(res.data.user));
-            navigate('/users')
-           alert("login successful")
-        } else {
-          alert("wrong credentials");
-        }
-      })
-      .catch((err) => console.log(err));
-  };
-
-  let formHandle1 = (e) => {
-    e.preventDefault();
-    navigate("/asignup");
+    setLoading(true);
+    try {
+      const { data } = await api.post('/admin/login', form);
+      loginAdmin(data.admin, data.token);
+      toast.success('Welcome, ' + data.admin.name);
+      setTimeout(() => navigate('/ahome'), 800);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Login failed.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-   <div>
-
-    <div className="flex items-center justify-center min-h-screen bg-white"> 
-   
-    {/* <h2 style={{ position: "relative", bottom: "300px", right: "300px", transform: "scaleX(-1.5)",}} > <Link to="/" className='text-gray-500 hover:text-gray-900'><FaSignOutAlt/></Link></h2> */}
-
-      <div className="relative  bg-green-500 p-8 rounded-md shadow-md overflow-hidden" style={{display:"flex",height:"420px",width:"550px"}}>
-      <div>
-        <img src='https://www.einfochips.com/blog/wp-content/uploads/2023/06/2_Blog_Featured_Image-scaled.jpg' width='200px' style={{marginRight:"35px",height:"360px"}} />
-      </div>
-        <div className="relative z-10" style={{width:"270px"}}>  
-          <div>
-            <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-4"  >
-              Login to Admin
-            </h2>
-            
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-emerald-50 flex items-center justify-center px-4">
+      <Toast toasts={toasts} />
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-slate-900 rounded-2xl mb-4">
+            <svg className="w-8 h-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
           </div>
-          
-      
-          <form className="space-y-6" onSubmit={handleSubmit}>
-       
-          {/* <form className="space-y-6" onSubmit={handleSubmit}> */}
-            {/* Email Input */}
-            <div>
-                
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Email address"
-              />
-            </div>
-
-            {/* Password Input */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Password"
-              />
-            </div>
-
-            {/* Submit Button */}
-            <div>
-              <button
-                type="submit"
-                className="bg-red-300 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:border-indigo-300 transition-all duration-300"
-              >
-                Log in
-              </button>
-              <br />
-              <p className="mt-2 text-sm text-gray-300">
-                Don't have an account? Create
-                <button
-                  onClick={formHandle1}
-                  className="ml-2 text-red-500 hover:underline focus:outline-none focus:ring focus:border-indigo-300 transition-all duration-300"
-                >
-                  Signup
-                </button>
-              </p>
-            </div>
-          </form>
-          {/* </form> */}
+          <h1 className="text-2xl font-bold text-slate-900">Admin Login</h1>
+          <p className="text-slate-500 text-sm mt-1">Sign in to the admin dashboard</p>
         </div>
 
-        {/* Backside tilted background */}
-        
-      </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+              <input type="email" name="email" value={form.email} onChange={handleChange} required
+                placeholder="admin@evcharge.com"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent placeholder:text-slate-400 transition" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+              <input type="password" name="password" value={form.password} onChange={handleChange} required
+                placeholder="••••••••"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent placeholder:text-slate-400 transition" />
+            </div>
+            <button type="submit" disabled={loading}
+              className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">
+              {loading && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
+          <p className="text-center text-sm text-slate-500 mt-6">
+            No admin account?{' '}
+            <Link to="/asignup" className="text-emerald-600 font-medium hover:underline">Create one</Link>
+          </p>
+        </div>
+        <p className="text-center text-sm text-slate-400 mt-4">
+          <Link to="/login" className="hover:underline">← Back to user login</Link>
+        </p>
       </div>
     </div>
   );
