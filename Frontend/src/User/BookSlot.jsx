@@ -1,197 +1,204 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import '../App.css'
-import moment from 'moment';
-import 'moment-timezone';
+import SlotPicker from './SlotPicker';
+import Toast, { useToast } from '../Components/Toast';
+import api from '../api/api';
+import { useAuth } from '../context/AuthContet';
 
-function BookSlot() {
-  const [item, setItem] = useState({});
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phno: '',
-    date:'',
-    time:''
-  });
-
-  
+const BookSlot = () => {
   const { id } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toasts, toast } = useToast();
 
+  const station = location.state?.station || null;
+
+  const [form, setForm] = useState({ phno: '', date: '', time: '' });
+  const [bookedSlots, setBookedSlots] = useState([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const today = new Date().toISOString().split('T')[0];
+
+  // Fetch booked slots whenever date changes
   useEffect(() => {
-    axios.get(`http://localhost:7000/chargestations/${id}`)
-      .then((resp) => {
-        setItem(resp.data);
-      })
-      .catch((error) => {
-        console.log("Failed to fetch item data:", error);
-      });
-  }, [id]);
+    if (!form.date) return;
+    const fetchSlots = async () => {
+      setLoadingSlots(true);
+      try {
+        const { data } = await api.get(`/user/slots/${id}?date=${form.date}`);
+        setBookedSlots(data.bookedSlots || []);
+      } catch (err) {
+        console.error('Error fetching slots:', err);
+        setBookedSlots([]);
+      } finally {
+        setLoadingSlots(false);
+      }
+    };
+    fetchSlots();
+    // Reset time selection when date changes
+    setForm((prev) => ({ ...prev, time: '' }));
+  }, [form.date, id]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-
+  const handleChange = (e) =>
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    if (!form.phno || !form.date || !form.time) {
+      toast.error('Please fill all fields and select a time slot.');
+      return;
+    }
+    setSubmitting(true);
     try {
-      // Ensure item is available and contains the required properties
-      if (!item || !item.name || !item.address_components.district || !item.address_components.city || !item.address_components.state || !item.address_components.country || !item.address_components.zipcode || !item.address_components.street_address  || !item.address_components.district) {
-        throw new Error('Item data is missing required properties');
-      }
-
-
-const { name} = item;
-console.log(item)
-
-      const updatedFormData = {
-        ...formData,
-        name: item.name,
-        address: {
-          district: item.address_components.district,
-          city: item.address_components.city,
-          state: item.address_components.state,
-          country: item.address_components.country,
-          zipcode: item.address_components.zipcode,
-          street_address: item.address_components.street_address,
-        },
-      };
-
-      updatedFormData.time = moment.tz(formData.time, 'HH:mm', 'Asia/Kolkata').format('hh:mm A');
-      // You can add user-specific data here
-      const userid = JSON.parse(localStorage.getItem('user')).id;
-      const username = JSON.parse(localStorage.getItem('user')).name;
-      updatedFormData.userId = userid;
-      updatedFormData.userName = username;
-
-      // Post the updatedFormData
-      await axios.post('http://localhost:7000/userbooking', updatedFormData);
-      console.log(updatedFormData);
-      alert('booked successfully');
-      navigate('/mybookings');
-    } catch (error) {
-      console.error('Error booking:', error);
+      await api.post('/user/booking', {
+        stationId: id,
+        stationName: station?.name || 'Unknown Station',
+        phno: form.phno,
+        date: form.date,
+        time: form.time,
+        address: station?.address_components,
+      });
+      toast.success('Slot booked successfully!');
+      setTimeout(() => navigate('/mybookings'), 1000);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Booking failed. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div style={{ backgroundColor: '' }}>
-      <Sidebar/>
-      <div style={{ display: 'flex ' }} >
-        <div className="max-w-md mx-auto mt-8 p-4 border rounded shadow-lg bg-white">
-          <h2 className="text-2xl font-semibold" >Your Booking is almost Done! </h2>
-          {/* <p>item name:{item.itemtype}</p> */}
-          <form onSubmit={handleSubmit}>
+    <Sidebar>
+      <Toast toasts={toasts} />
 
-            <div >
-              <label className="block text-gray-600 text-center" style={{ paddingTop: "10px" }}>Details:</label>
-              <div class="input-container">
+      <div className="max-w-2xl mx-auto">
+        {/* Back */}
+        <button
+          onClick={() => navigate('/chargestation')}
+          className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 mb-6 transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Stations
+        </button>
 
-                <input type="text" id="myInput" class="w-48 p-2 border border-gray-300 rounded focus:outline-none" placeholder=" " style={{ width: "340px" }}
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                />
-                <label for="myInput" class="absolute left-2 transform -translate-y-1/2 bg-white px-1 pointer-events-none transition-transform">
-                 name
-                </label>
+        {/* Station info */}
+        {station && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
               </div>
-            </div><br />
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <div >
-                <div class="input-container">
-                  <input type="text" id="myInput" class="w-48 p-2 border border-gray-300 rounded focus:outline-none" placeholder=" "
-                    style={{ width: "160px" }}
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                  />
-                  <label for="myInput" class="absolute left-2 transform -translate-y-1/2 bg-white px-1 pointer-events-none transition-transform">
-                    Email
-                  </label>
-                </div>
-              </div>
-              <div >
-                <div class="input-container">
-                  <input type="text" id="myInput" class="w-48 p-2 border border-gray-300 rounded focus:outline-none" placeholder=" "
-                    style={{ width: "160px" }}
-                    name="phno"
-                    value={formData.phno}
-                    onChange={handleChange}
-                  />
-                  <label for="myInput" class="absolute left-2 transform -translate-y-1/2 bg-white px-1 pointer-events-none transition-transform">
-                    phno:-
-                  </label>
-                </div>
+              <div>
+                <p className="font-semibold text-slate-800">{station.name}</p>
+                <p className="text-sm text-slate-500">
+                  {[station.address_components?.street_address, station.address_components?.city]
+                    .filter(Boolean).join(', ')}
+                </p>
               </div>
             </div>
-            <br/>
-           <div>
-            <input  type='date'
-            name='date'
-            id='date'
-            value={formData.date}
-             onChange={handleChange}
-            />
-           </div>
-           <br/>
-           <div>
-           <input  type='time'
-            name='time'
-            id='time'
-            value={formData.time}
-             onChange={handleChange}
-             />
-           </div>
-           <br/>
-        
-          
+          </div>
+        )}
+
+        {/* Form */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-6">
+          <h1 className="text-xl font-bold text-slate-900 mb-6">Book a Charging Slot</h1>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Phone */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                name="phno"
+                value={form.phno}
+                onChange={handleChange}
+                required
+                placeholder="+91 98765 43210"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm
+                  focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent
+                  placeholder:text-slate-400 transition"
+              />
+            </div>
+
+            {/* Date */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                Select Date
+              </label>
+              <input
+                type="date"
+                name="date"
+                value={form.date}
+                onChange={handleChange}
+                min={today}
+                required
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm
+                  focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+              />
+            </div>
+
+            {/* Time slots */}
+            {form.date && (
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-3">
+                  Select Time Slot
+                  {loadingSlots && (
+                    <span className="ml-2 text-emerald-600 font-normal">
+                      Loading availability...
+                    </span>
+                  )}
+                </label>
+                {!loadingSlots && (
+                  <SlotPicker
+                    bookedSlots={bookedSlots}
+                    selectedSlot={form.time}
+                    onSelect={(slot) => setForm((prev) => ({ ...prev, time: slot }))}
+                    date={form.date}
+                  />
+                )}
+                {loadingSlots && (
+                  <div className="flex justify-center py-8">
+                    <div className="w-6 h-6 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Summary */}
+            {form.date && form.time && (
+              <div className="bg-slate-50 rounded-xl p-4 text-sm space-y-1.5">
+                <p className="font-medium text-slate-700">Booking Summary</p>
+                <p className="text-slate-500">📍 {station?.name || 'Station'}</p>
+                <p className="text-slate-500">📅 {form.date}</p>
+                <p className="text-slate-500">🕐 {form.time}</p>
+              </div>
+            )}
+
             <button
               type="submit"
-              style={{ width: "340px" }}
-              className="bg-blue-400 hover:bg-blue-800 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              disabled={submitting || !form.time}
+              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300
+                text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
             >
-              Book
+              {submitting && (
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              )}
+              {submitting ? 'Booking...' : 'Confirm Booking'}
             </button>
           </form>
         </div>
       </div>
-    </div>
+    </Sidebar>
   );
-}
+};
 
 export default BookSlot;
-
-
-// <div >
-// <div class="input-container">
-//   <input type="date"  
-//     style={{ width: "160px" }}
-//     name="date"
-//     value={formData.date}
-//     onChange={handleChange}
-//   />
-//   <label  class="absolute left-2 transform -translate-y-1/2 bg-white px-1 pointer-events-none transition-transform">
-//     Date:-
-//   </label>
-// </div>
-// </div>
-// <div >
-// <div class="input-container">
-//   <input type="time" id="myInput" class="w-48 p-2 border border-gray-300 rounded focus:outline-none" placeholder=" "
-//     style={{ width: "160px" }}
-//     name="time"
-//     value={formData.time}
-//     onChange={handleChange}
-//   />
-//   <label for="myInput" class="absolute left-2 transform -translate-y-1/2 bg-white px-1 pointer-events-none transition-transform">
-//     Time:-
-//   </label>
-// </div>
-// </div>
