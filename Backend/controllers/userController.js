@@ -1,7 +1,7 @@
 const User = require('../models/UserSchema');
 const ChargingStation = require('../models/ChargeStation');
 const Booking = require('../models/BookingSchema');
-const signToken = require('../helper/jwtSign')
+const {signToken} = require('../helper/jwtSign.js')
 
 // POST /api/user/login
 const ulogin = async (req, res) => {
