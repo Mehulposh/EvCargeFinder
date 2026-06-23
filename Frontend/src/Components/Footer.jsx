@@ -1,4 +1,5 @@
 import React from 'react';
+import Logo from './Logo';
 
 const Footer = () => {
   return (
@@ -6,14 +7,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 py-10">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Brand */}
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <span className="text-white font-bold text-lg">EV Charge</span>
-          </div>
+          <Logo size="md" variant="light" to="/"/>
 
           {/* Tagline */}
           <p className="text-sm text-center text-slate-400 max-w-md">
