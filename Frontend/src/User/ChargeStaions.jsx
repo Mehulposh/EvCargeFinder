@@ -1,164 +1,192 @@
-// src/ChargingStations.js
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { GoogleMap, LoadScriptNext, Marker, StandaloneSearchBox, InfoWindow } from '@react-google-maps/api';
+import React, { useEffect, useState, useCallback } from 'react';
+import { GoogleMap, MarkerF, InfoWindowF } from '@react-google-maps/api';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import { Button } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import api from '../api/api';
 
-const libraries = ['places'];
+const MAP_STYLE = { width: '100%', height: '100%' };
 
-const ChargingStations = ({ chargingStation }) => {
-  const [chargeStations, setChargeStations] = useState([]);
+const DEFAULT_CENTER = { lat: 20.5937, lng: 78.9629 }; // India center
+
+const ChargeStaions = () => {
+  const [stations, setStations] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [searchBox, setSearchBox] = useState(null);
-  const [center, setCenter] = useState({ lat: 17.4065, lng: 78.4772 });
-  const [selectedStation, setSelectedStation] = useState(null);
-
-
-  const onSearchBoxLoad = (ref) => {
-    setSearchBox(ref);
-  };
-
-  const onPlacesChanged = () => {
-    if (searchBox) {
-      const places = searchBox.getPlaces();
-      if (places.length > 0) {
-        const { geometry } = places[0];
-        setCenter({
-          lat: geometry.location.lat(),
-          lng: geometry.location.lng(),
-        });
-      }
-    }
-  };
-
-  const handleMarkerClick = (station) => {
-    setSelectedStation(station);
-  };
-
-  const handleInfoWindowClose = () => {
-    setSelectedStation(null);
-  };
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchData = async () => {
+    // Get user's location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => setUserLocation(DEFAULT_CENTER)
+      );
+    }
+
+    const fetchStations = async () => {
       try {
-        const response = await axios.get('http://localhost:7000/chargestations');
-        setChargeStations(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching data:', error);
+        const { data } = await api.get('/user/chargestations');
+        setStations(data);
+      } catch (err) {
+        console.error('Error fetching stations:', err);
+      } finally {
         setLoading(false);
       }
     };
-
-    fetchData();
+    fetchStations();
   }, []);
 
+  const handleMarkerClick = useCallback((station) => {
+    setSelected(station);
+  }, []);
+
+  const mapCenter = userLocation || DEFAULT_CENTER;
+
   return (
-    <div>
-    <Sidebar/>
-
-      <div style={{ display: 'flex' }}>
-        <div style={{ width: '80%', marginLeft: '230px' }}>
-          <h1 className='text-center mb-5 pt-2'>Charging Stations</h1>         
-            <GoogleMap
-              mapContainerStyle={{ height: '500px', width: '100%' }}
-              center={center}
-              zoom={8}>
-              <StandaloneSearchBox
-                onLoad={onSearchBoxLoad}
-                onPlacesChanged={onPlacesChanged}
-              >
-                <input
-                  type="text"
-                  placeholder="Search for a place"
-                  style={{
-                    boxSizing: `border-box`,
-                    border: `1px solid transparent`,
-                    width: `240px`,
-                    height: `32px`,
-                    padding: `0 12px`,
-                    borderRadius: `3px`,
-                    boxShadow: `0 2px 6px rgba(0, 0, 0, 0.3)`,
-                    fontSize: `14px`,
-                    outline: `none`,
-                    textOverflow: `ellipses`,
-                    position: 'absolute',
-                    left: '50%',
-                    marginLeft: '-120px',
-                  }}
-                />
-              </StandaloneSearchBox>
-
-              {/* Render markers based on chargeStations data */}
-              {chargeStations.map((station) => (
-                <Marker
-                  key={station._id}
-                  position={{ lat: station.latitude, lng: station.longitude }}
-                  onClick={() => handleMarkerClick(station)}
-                  icon={{
-                    url: "https://cdn-www.pod-point.com/Circle-charging.png?v=1610534982",
-                    scaledSize: new window.google.maps.Size(30, 30), // Adjust the size as needed
-                  }}
-                />
-              ))}
-
-              {/* Display InfoWindow when a marker is clicked */}
-              {selectedStation && (
-                <InfoWindow
-                  position={{ lat: selectedStation.latitude, lng: selectedStation.longitude }}
-                  onCloseClick={handleInfoWindowClose}
-                >
-                  <div>
-                    <h3>
-                      <strong>Charging Point Name:</strong>
-                      {selectedStation.name}
-                    </h3>
-                    <p>
-                      <strong>Address:</strong>
-                      {selectedStation.address_components.street_address}, {selectedStation.address_components.city},{' '}
-                      {selectedStation.address_components.zipcode}, {selectedStation.address_components.district},{' '}
-                      {selectedStation.address_components.state}, {selectedStation.address_components.country}.{' '}
-                    </p>
-                    <p>
-                      <strong>Latitude</strong>
-                      <a href={selectedStation.latitude}>{selectedStation.latitude}</a>
-                    </p>
-                    <p>
-                      <strong>Longitude</strong>
-                      <a href={selectedStation.longitude}>{selectedStation.longitude}</a>
-                    </p>
-                    <p>
-                      <strong>Phno:</strong>
-                      {selectedStation.phone_number}
-                    </p>
-                    <p>
-                      <strong>Timings</strong>
-                      {selectedStation.opening_hours}
-                    </p>
-                    <p>
-                      <strong>Ratings</strong>
-                      {selectedStation.rating}
-                    </p>
-                      <button
-                            type="submit"
-                            className="bg-blue-500 text-white font-semibold px-4 py-2 rounded hover:bg-blue-700">
-                            <Link to={`/bookslot/${selectedStation._id}`} style={{ color: "white", textDecoration: "none" }}  >
-                                Book Slot
-                            </Link>
-                        </button>
-                  </div>
-                </InfoWindow>
-              )}
-            </GoogleMap>
-          
-        </div>
+    <Sidebar>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-slate-900">Charging Stations</h1>
+        <p className="text-slate-500 text-sm mt-1">
+          {loading ? 'Loading stations...' : `${stations.length} stations found near you`}
+        </p>
       </div>
 
-    </div>
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden" style={{ height: '70vh' }}>
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+              <p className="text-slate-500 text-sm">Loading map...</p>
+            </div>
+          </div>
+        ) : (
+          <GoogleMap
+            mapContainerStyle={MAP_STYLE}
+            center={mapCenter}
+            zoom={userLocation ? 12 : 5}
+            options={{
+              streetViewControl: false,
+              mapTypeControl: false,
+              fullscreenControl: false,
+            }}
+          >
+            {/* User location marker */}
+            {userLocation && (
+              <MarkerF
+                position={userLocation}
+                icon={{
+                  path: window.google?.maps?.SymbolPath?.CIRCLE,
+                  scale: 8,
+                  fillColor: '#2563eb',
+                  fillOpacity: 1,
+                  strokeColor: '#fff',
+                  strokeWeight: 2,
+                }}
+              />
+            )}
+
+            {/* Station markers */}
+            {stations.map((station) => (
+              <MarkerF
+                key={station._id}
+                position={{ lat: station.latitude, lng: station.longitude }}
+                onClick={() => handleMarkerClick(station)}
+                icon={{
+                  path: window.google?.maps?.SymbolPath?.BACKWARD_CLOSED_ARROW,
+                  scale: 6,
+                  fillColor: '#059669',
+                  fillOpacity: 1,
+                  strokeColor: '#fff',
+                  strokeWeight: 1.5,
+                }}
+              />
+            ))}
+
+            {/* Info window */}
+            {selected && (
+              <InfoWindowF
+                position={{ lat: selected.latitude, lng: selected.longitude }}
+                onCloseClick={() => setSelected(null)}
+              >
+                <div className="p-2 min-w-[200px]">
+                  <h3 className="font-semibold text-slate-800 text-sm mb-1">{selected.name}</h3>
+                  {selected.address_components && (
+                    <p className="text-xs text-slate-500 mb-1">
+                      {[
+                        selected.address_components.street_address,
+                        selected.address_components.city,
+                        selected.address_components.state,
+                      ].filter(Boolean).join(', ')}
+                    </p>
+                  )}
+                  {selected.phone_number && (
+                    <p className="text-xs text-slate-500 mb-1">📞 {selected.phone_number}</p>
+                  )}
+                  {selected.opening_hours && (
+                    <p className="text-xs text-slate-500 mb-2">🕐 {selected.opening_hours}</p>
+                  )}
+                  {selected.rating > 0 && (
+                    <p className="text-xs text-amber-600 mb-2">⭐ {selected.rating} ({selected.review_count} reviews)</p>
+                  )}
+                  <button
+                    onClick={() => navigate(`/bookslot/${selected._id}`, { state: { station: selected } })}
+                    className="w-full mt-1 px-3 py-1.5 bg-emerald-600 text-white text-xs font-semibold
+                      rounded-lg hover:bg-emerald-700 transition-colors"
+                  >
+                    Book Slot
+                  </button>
+                </div>
+              </InfoWindowF>
+            )}
+          </GoogleMap>
+        )}
+      </div>
+
+      {/* Station list below map */}
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {stations.map((station) => (
+          <div
+            key={station._id}
+            className="bg-white rounded-xl border border-slate-200 p-4 hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => {
+              setSelected(station);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-slate-800 text-sm truncate">{station.name}</p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {station.address_components?.city || 'Location unavailable'}
+                </p>
+              </div>
+              {station.rating > 0 && (
+                <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full flex-shrink-0">
+                  ⭐ {station.rating}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/bookslot/${station._id}`, { state: { station } });
+              }}
+              className="mt-3 w-full py-1.5 bg-emerald-700 text-white text-xs font-semibold
+                rounded-lg hover:bg-emerald-100 hover:text-slate-500 transition-colors"
+            >
+              Book Slot
+            </button>
+          </div>
+        ))}
+      </div>
+    </Sidebar>
   );
 };
 
-export default ChargingStations;
+export default ChargeStaions;
