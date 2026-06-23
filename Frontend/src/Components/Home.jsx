@@ -75,11 +75,11 @@ const Home = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/signup"
-              className="px-8 py-3 bg-white text-slate-700 font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors">
+              className="px-8 py-3 bg-emerald-600 text-white font-semibold rounded-xl border border-slate-200 hover:bg-slate-500 transition-colors">
               Get Started Free
             </Link>
             <Link to="/login"
-              className="px-8 py-3 bg-white text-slate-700 font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors">
+              className="px-8 py-3 bg-emerald-600 text-white font-semibold rounded-xl border border-slate-200 hover:bg-slate-500 transition-colors">
               Sign In
             </Link>
           </div>
