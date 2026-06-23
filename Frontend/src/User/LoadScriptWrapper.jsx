@@ -1,18 +1,13 @@
-// src/LoadScriptWrapper.js
 import React from 'react';
-import { LoadScriptNext } from '@react-google-maps/api';
+import { LoadScript } from '@react-google-maps/api';
 
-const libraries = ['places'];
+const LIBRARIES = ['places'];
+const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
-const LoadScriptWrapper = ({ children }) => {
-  return (
-    <LoadScriptNext
-      googleMapsApiKey="AIzaSyCozhSKrgb97LG3oz35s1uIOn3JLbmZAkw"
-      libraries={libraries}
-    >
-      {children}
-    </LoadScriptNext>
-  );
-};
+const LoadScriptWrapper = ({ children }) => (
+  <LoadScript googleMapsApiKey={API_KEY} libraries={LIBRARIES}>
+    {children}
+  </LoadScript>
+);
 
 export default LoadScriptWrapper;
