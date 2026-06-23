@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContet.jsx';
 import { ProtectedRoute, AdminRoute } from './protectedRoute/protectedRoute.jsx';
-import LoadScriptWrapper from './User/LoadScriptWrapper';
 
 // Public
 import Home from './Components/Home';
@@ -28,46 +27,23 @@ import EditUser from './Admin/EditUser';
 import Achargepoints from './Admin/Achargepoints';
 import Addchargestaion from './Admin/Addchargestation';
 import Editchargestation from './Admin/Editchargestation';
-import NavBar from './Components/NavBar.jsx';
+
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public — no map needed */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/alogin" element={<Alogin />} />
           <Route path="/asignup" element={<Asignup />} />
-
-          {/* User protected — wrap only these with LoadScriptWrapper */}
-          <Route path="/uhome" element={
-            <ProtectedRoute><Uhome /></ProtectedRoute>
-          } />
-          <Route path="/chargestation" element={
-            <ProtectedRoute>
-              <LoadScriptWrapper>
-                <ChargingStations />
-              </LoadScriptWrapper>
-            </ProtectedRoute>
-          } />
-          <Route path="/bookslot/:id" element={
-            <ProtectedRoute>
-              <LoadScriptWrapper>
-                <BookSlot />
-              </LoadScriptWrapper>
-            </ProtectedRoute>
-          } />
-          <Route path="/pricing" element={
-            <ProtectedRoute><Pricing /></ProtectedRoute>
-          } />
-          <Route path="/mybookings" element={
-            <ProtectedRoute><Mybookings /></ProtectedRoute>
-          } />
-
-          {/* Admin protected */}
+          <Route path="/uhome" element={<ProtectedRoute><Uhome /></ProtectedRoute>} />
+          <Route path="/chargestation" element={<ProtectedRoute><ChargingStations /></ProtectedRoute>} />
+          <Route path="/bookslot/:id" element={<ProtectedRoute><BookSlot /></ProtectedRoute>} />
+          <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
+          <Route path="/mybookings" element={<ProtectedRoute><Mybookings /></ProtectedRoute>} />
           <Route path="/ahome" element={<AdminRoute><Ahome /></AdminRoute>} />
           <Route path="/users" element={<AdminRoute><Users /></AdminRoute>} />
           <Route path="/edituser/:id" element={<AdminRoute><EditUser /></AdminRoute>} />
@@ -79,6 +55,8 @@ function App() {
     </AuthProvider>
   );
 }
+
+
 
 
 export default App;
