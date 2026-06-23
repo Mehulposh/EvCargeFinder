@@ -130,6 +130,7 @@ const Home = () => {
             Create Free Account
           </Link>
         </div>
+        
       </section>
 
       <Footer />
