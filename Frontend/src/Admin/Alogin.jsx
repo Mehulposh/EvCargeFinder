@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/api';
 import { useAuth } from '../context/AuthContet';
 import Toast, { useToast } from '../Components/Toast';
+import NavBar from '../Components/NavBar';
 
 const Alogin = () => {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -29,47 +30,50 @@ const Alogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-emerald-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-emerald-50 flex flex-col">
       <Toast toasts={toasts} />
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-slate-900 rounded-2xl mb-4">
-            <svg className="w-8 h-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
+      <NavBar/>
+      <div className='flex flex-1 items-center justify-center px-4 mt-3'>
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-slate-900 rounded-2xl mb-4">
+              <svg className="w-8 h-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900">Admin Login</h1>
+            <p className="text-slate-500 text-sm mt-1">Sign in to the admin dashboard</p>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">Admin Login</h1>
-          <p className="text-slate-500 text-sm mt-1">Sign in to the admin dashboard</p>
-        </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
-              <input type="email" name="email" value={form.email} onChange={handleChange} required
-                placeholder="admin@evcharge.com"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent placeholder:text-slate-400 transition" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
-              <input type="password" name="password" value={form.password} onChange={handleChange} required
-                placeholder="••••••••"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent placeholder:text-slate-400 transition" />
-            </div>
-            <button type="submit" disabled={loading}
-              className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">
-              {loading && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-              {loading ? 'Signing in...' : 'Sign In'}
-            </button>
-          </form>
-          <p className="text-center text-sm text-slate-500 mt-6">
-            No admin account?{' '}
-            <Link to="/asignup" className="text-emerald-600 font-medium hover:underline">Create one</Link>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+                <input type="email" name="email" value={form.email} onChange={handleChange} required
+                  placeholder="admin@evcharge.com"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent placeholder:text-slate-400 transition" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+                <input type="password" name="password" value={form.password} onChange={handleChange} required
+                  placeholder="••••••••"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent placeholder:text-slate-400 transition" />
+              </div>
+              <button type="submit" disabled={loading}
+                className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">
+                {loading && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                {loading ? 'Signing in...' : 'Sign In'}
+              </button>
+            </form>
+            <p className="text-center text-sm text-slate-500 mt-6">
+              No admin account?{' '}
+              <Link to="/asignup" className="text-emerald-600 font-medium hover:underline">Create one</Link>
+            </p>
+          </div>
+          <p className="text-center text-sm text-slate-400 mt-4">
+            <Link to="/login" className="hover:underline">← Back to user login</Link>
           </p>
         </div>
-        <p className="text-center text-sm text-slate-400 mt-4">
-          <Link to="/login" className="hover:underline">← Back to user login</Link>
-        </p>
       </div>
     </div>
   );
