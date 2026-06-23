@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContet.jsx';
-
+import Logo from '../Components/Logo.jsx';
 const navItems = [
   {
     label: 'Dashboard',
@@ -49,12 +49,7 @@ const SidebarContent = ({ location, handleLogout, onNavigate }) => (
   <div className="flex flex-col h-full">
     {/* Logo */}
     <div className="flex items-center gap-2 px-4 py-5 border-b border-slate-100">
-      <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center flex-shrink-0">
-        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-      </div>
-      <span className="font-bold text-slate-800 text-lg">EV Charge</span>
+      <Logo size="md" />
     </div>
 
     {/* Nav */}
@@ -138,11 +133,7 @@ const Sidebar = ({ children }) => {
             </svg>
           </button>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-emerald-600 rounded-md flex items-center justify-center">
-              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
+            <Logo size='sm'/>
             <span className="font-bold text-slate-800">EV Charge</span>
           </div>
         </header>
