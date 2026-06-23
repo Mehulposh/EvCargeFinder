@@ -1,62 +1,84 @@
-
-import ChargingStations from './User/ChargeStaions';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { BrowserRouter, Routes,Route } from 'react-router-dom';
-import Sidebar from './User/Sidebar';
-import Home from './Components/Home';
-import Pricing from './User/Pricing';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContet.jsx';
+import { ProtectedRoute, AdminRoute } from './protectedRoute/protectedRoute.jsx';
 import LoadScriptWrapper from './User/LoadScriptWrapper';
-import Uhome from './User/Uhome';
+
+// Public
+import Home from './Components/Home';
+
+// User auth
 import Login from './User/Login';
 import Signup from './User/Signup';
+
+// User app (protected)
+import Uhome from './User/Uhome';
+import ChargingStations from './User/ChargeStaions';
+import BookSlot from './User/BookSlot';
+import Pricing from './User/Pricing';
+import Mybookings from './User/Mybookings';
+
+// Admin auth
 import Alogin from './Admin/Alogin';
 import Asignup from './Admin/Asingup';
-import Users from './Admin/Users';
+
+// Admin app (protected)
 import Ahome from './Admin/Ahome';
+import Users from './Admin/Users';
+import EditUser from './Admin/EditUser';
 import Achargepoints from './Admin/Achargepoints';
 import Addchargestaion from './Admin/Addchargestation';
 import Editchargestation from './Admin/Editchargestation';
-import EditUser from './Admin/EditUser';
-import BookSlot from './User/BookSlot';
-import Mybookings from './User/Mybookings';
-
+import NavBar from './Components/NavBar.jsx';
 
 function App() {
   return (
-    <div  >
-      <LoadScriptWrapper>
-    <BrowserRouter>
-           <div>
-          <Routes>
-            <Route path='/' element={<Home/>} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public — no map needed */}
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/alogin" element={<Alogin />} />
+          <Route path="/asignup" element={<Asignup />} />
 
-            {/* Admin */}
-            <Route path='/alogin' element={<Alogin/>} />
-            <Route path='/asignup' element={<Asignup/>} />
-            <Route path='/ahome' element={<Ahome/>} />
-            <Route path='/users' element={<Users/>} />
-            <Route path='/edituser/:id' element={<EditUser />} />
-            <Route path='/achargepoints' element={<Achargepoints/>} />
-            <Route path='/addchargestation' element={<Addchargestaion/>} />
-            <Route path='/editchargestation/:id' element={<Editchargestation />} />
+          {/* User protected — wrap only these with LoadScriptWrapper */}
+          <Route path="/uhome" element={
+            <ProtectedRoute><Uhome /></ProtectedRoute>
+          } />
+          <Route path="/chargestation" element={
+            <ProtectedRoute>
+              <LoadScriptWrapper>
+                <ChargingStations />
+              </LoadScriptWrapper>
+            </ProtectedRoute>
+          } />
+          <Route path="/bookslot/:id" element={
+            <ProtectedRoute>
+              <LoadScriptWrapper>
+                <BookSlot />
+              </LoadScriptWrapper>
+            </ProtectedRoute>
+          } />
+          <Route path="/pricing" element={
+            <ProtectedRoute><Pricing /></ProtectedRoute>
+          } />
+          <Route path="/mybookings" element={
+            <ProtectedRoute><Mybookings /></ProtectedRoute>
+          } />
 
-
-            {/* User */}
-            <Route path='/login' element={<Login/>} />
-            <Route path='/signup' element={<Signup/>} />
-            <Route path='/uhome' element={<Uhome/>} />
-            <Route path='/chargestation' element={<ChargingStations/>} />
-            <Route path='/bookslot/:id' element={<BookSlot/>} />
-            <Route path='/pricing' element={<Pricing/>} />
-            <Route path='/mybookings' element={<Mybookings/>} />
-            {/* <Route path='/favorities' element={<Favorities/>} />
-            <Route path='/playlist' element={<Playlist/>} /> */}
-           </Routes>
-          </div>
-        </BrowserRouter>
-        </LoadScriptWrapper>
-   </div>
+          {/* Admin protected */}
+          <Route path="/ahome" element={<AdminRoute><Ahome /></AdminRoute>} />
+          <Route path="/users" element={<AdminRoute><Users /></AdminRoute>} />
+          <Route path="/edituser/:id" element={<AdminRoute><EditUser /></AdminRoute>} />
+          <Route path="/achargepoints" element={<AdminRoute><Achargepoints /></AdminRoute>} />
+          <Route path="/addchargestation" element={<AdminRoute><Addchargestaion /></AdminRoute>} />
+          <Route path="/editchargestation/:id" element={<AdminRoute><Editchargestation /></AdminRoute>} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
+
 
 export default App;
