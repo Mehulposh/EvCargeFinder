@@ -1,130 +1,110 @@
 import React, { useState } from 'react';
-import { useNavigate,Link } from 'react-router-dom';
-import axios from 'axios';
-// import { FaSignOutAlt } from 'react-icons/fa';
-
-
+import { Link, useNavigate } from 'react-router-dom';
+import api from '../api/api';
+import { useAuth } from '../context/AuthContet';
+import Logo from '../Components/Logo';
+import Toast, { useToast } from '../Components/Toast';
+import NavBar from '../Components/NavBar';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [loading, setLoading] = useState(false);
+  const { loginUser } = useAuth();
   const navigate = useNavigate();
+  const { toasts, toast } = useToast();
 
-  axios.defaults.withCredentials = true;
+  const handleChange = (e) =>
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    let payload = { email, password };
-    axios
-      .post("http://localhost:7000/login", payload)
-      .then((res) => {
-        console.log("login: " + res.data.Status);
-        if (res.data.Status === "Success") {
-          console.log(res.data.user);
-          localStorage.setItem('user', JSON.stringify(res.data.user));
-            navigate('/uhome')
-           alert("login successful")
-        } else {
-          alert("wrong credentials");
-        }
-      })
-      .catch((err) => console.log(err));
-  };
-
-  let formHandle1 = (e) => {
-    e.preventDefault();
-    navigate("/signup");
+    setLoading(true);
+    try {
+      const { data } = await api.post('/user/login', form);
+      loginUser(data.user, data.token);
+      toast.success('Welcome back, ' + data.user.name + '!');
+      setTimeout(() => navigate('/uhome'), 800);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div>
-
-    <div className="flex items-center justify-center min-h-screen bg-white"> 
-   
-    {/* <h2 style={{ position: "relative", bottom: "300px", right: "300px", transform: "scaleX(-1.5)",}} > <Link to="/" className='text-gray-500 hover:text-gray-900'><FaSignOutAlt/></Link></h2> */}
-
-      <div className="relative  bg-green-500 p-8 rounded-md shadow-md overflow-hidden" style={{display:"flex",height:"420px",width:"550px"}}>
-      <div>
-        <img src='https://www.einfochips.com/blog/wp-content/uploads/2023/06/2_Blog_Featured_Image-scaled.jpg' width='200px' style={{marginRight:"35px",height:"360px"}} />
-      </div>
-        <div className="relative z-10" style={{width:"270px"}}>  
-          <div>
-            <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-4"  >
-              Login to user account
-            </h2>
-            
+    <div className="min-h-screen  bg-gradient-to-br from-emerald-50 to-slate-100 flex flex-col">
+      <Toast toasts={toasts} />
+      <NavBar/>
+      <div className='flex flex-1 items-center justify-center px-4 mt-3'>
+        <div className="w-full max-w-md">
+          {/* Logo */}
+          <div className="text-center mb-8">
+            <Logo />
+            <h1 className="text-2xl font-bold text-slate-900">Welcome back</h1>
+            <p className="text-slate-500 text-sm mt-1">Sign in to your EV Charge account</p>
           </div>
-          
-      
-          <form className="space-y-6" onSubmit={handleSubmit}>
-       
-          {/* <form className="space-y-6" onSubmit={handleSubmit}> */}
-            {/* Email Input */}
-            <div>
-                
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Email address"
-              />
-            </div>
 
-            {/* Password Input */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Password"
-              />
-            </div>
+          {/* Card */}
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Email address</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  required
+                  placeholder="you@example.com"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm
+                    focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent
+                    placeholder:text-slate-400 transition"
+                />
+              </div>
 
-            {/* Submit Button */}
-            <div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  required
+                  placeholder="••••••••"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm
+                    focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent
+                    placeholder:text-slate-400 transition"
+                />
+              </div>
+
               <button
                 type="submit"
-                className="bg-red-300 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:border-indigo-300 transition-all duration-300"
+                disabled={loading}
+                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400
+                  text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
               >
-                Log in
+                {loading && (
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                )}
+                {loading ? 'Signing in...' : 'Sign In'}
               </button>
-              <br />
-              <p className="mt-2 text-sm text-gray-300">
-                Don't have an account? Create
-                <button
-                  onClick={formHandle1}
-                  className="ml-2 text-red-500 hover:underline focus:outline-none focus:ring focus:border-indigo-300 transition-all duration-300"
-                >
-                  Signup
-                </button>
-              </p>
-            </div>
-          </form>
-          {/* </form> */}
-        </div>
+            </form>
 
-        {/* Backside tilted background */}
-        
-      </div>
+            <p className="text-center text-sm text-slate-500 mt-6">
+              Don't have an account?{' '}
+              <Link to="/signup" className="text-emerald-600 font-medium hover:underline">
+                Sign up
+              </Link>
+            </p>
+          </div>
+
+          <p className="text-center text-sm text-slate-400 mt-6">
+            Are you an admin?{' '}
+            <Link to="/alogin" className="text-slate-600 hover:underline">Admin Login</Link>
+          </p>
+        </div>
       </div>
     </div>
-   
   );
 };
 
