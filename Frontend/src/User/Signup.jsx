@@ -51,7 +51,9 @@ const Signup = () => {
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="text-center mb-6">
-            <Logo/>
+            <div className="flex justify-center mb-4">
+              <Logo size="lg" withText={false} to="/" />
+            </div>
             <h1 className="text-2xl font-bold text-slate-900">Create account</h1>
             <p className="text-slate-500 text-sm mt-1">Start finding EV stations near you</p>
           </div>
