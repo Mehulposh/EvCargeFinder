@@ -39,7 +39,9 @@ const Login = () => {
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="text-center mb-8">
-            <Logo />
+            <div className="flex justify-center mb-4">
+              <Logo size="lg" withText={false} to="/" />
+            </div>
             <h1 className="text-2xl font-bold text-slate-900">Welcome back</h1>
             <p className="text-slate-500 text-sm mt-1">Sign in to your EV Charge account</p>
           </div>
