@@ -1,5 +1,18 @@
+/**
+ * Admin authorization middleware.
+ *
+ * Verifies the JWT and confirms the token belongs to an admin user.
+ * Admin-only routes should use this middleware.
+ */
 const jwt = require('jsonwebtoken');
 
+/**
+ * Middleware to protect admin-only routes.
+ *
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @param {import('express').NextFunction} next - Express next middleware.
+ */
 const adminAuth = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];

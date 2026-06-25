@@ -1,11 +1,23 @@
+/**
+ * Admin controller module.
+ *
+ * Contains admin authentication and management handlers for users,
+ * charging stations, bookings, and dashboard statistics.
+ */
 const Admin = require('../models/AdminSchema');
 const User = require('../models/UserSchema');
 const ChargingStation = require('../models/ChargeStation');
 const Booking = require('../models/BookingSchema');
-const {signTokenAdmin} = require('../helper/jwtSign')
+const { signTokenAdmin } = require('../helper/jwtSign');
 
-
-// POST /api/admin/login
+/**
+ * Authenticate an admin and return a signed JWT.
+ *
+ * @route POST /api/admin/login
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 const alogin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -34,7 +46,14 @@ const alogin = async (req, res) => {
   }
 };
 
-// POST /api/admin/signup
+/**
+ * Register a new admin account and return authentication details.
+ *
+ * @route POST /api/admin/signup
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 const asignup = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -60,7 +79,14 @@ const asignup = async (req, res) => {
   }
 };
 
-// GET /api/admin/users
+/**
+ * Retrieve all users, excluding password fields.
+ *
+ * @route GET /api/admin/users
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 const getUsers = async (req, res) => {
   try {
     const users = await User.find().select('-password').sort({ createdAt: -1 });
@@ -71,7 +97,14 @@ const getUsers = async (req, res) => {
   }
 };
 
-// GET /api/admin/user/:id
+/**
+ * Retrieve a specific user by ID.
+ *
+ * @route GET /api/admin/user/:id
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-password');
@@ -83,7 +116,14 @@ const getUserById = async (req, res) => {
   }
 };
 
-// GET /api/admin/user/:id/bookings
+/**
+ * Retrieve all bookings for a specific user.
+ *
+ * @route GET /api/admin/user/:id/bookings
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 const getUserBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ userId: req.params.id })
@@ -96,7 +136,14 @@ const getUserBookings = async (req, res) => {
   }
 };
 
-// PUT /api/admin/user/:id
+/**
+ * Update a user by ID using the request body.
+ *
+ * @route PUT /api/admin/user/:id
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 const updateUser = async (req, res) => {
   try {
     const updated = await User.findByIdAndUpdate(
@@ -111,11 +158,18 @@ const updateUser = async (req, res) => {
   }
 };
 
-// DELETE /api/admin/user/:id
+/**
+ * Delete a user and all associated bookings.
+ *
+ * @route DELETE /api/admin/user/:id
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 const deleteUser = async (req, res) => {
   try {
     await User.findByIdAndDelete(req.params.id);
-    // Also delete their bookings
+    // Also delete their bookings.
     await Booking.deleteMany({ userId: req.params.id });
     res.json({ message: 'User deleted.' });
   } catch (err) {
@@ -124,7 +178,14 @@ const deleteUser = async (req, res) => {
   }
 };
 
-// POST /api/admin/chargestation
+/**
+ * Create a new charging station.
+ *
+ * @route POST /api/admin/chargestation
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 const chargeStation = async (req, res) => {
   try {
     const station = await ChargingStation.create(req.body);
@@ -135,7 +196,14 @@ const chargeStation = async (req, res) => {
   }
 };
 
-// GET /api/admin/chargestations
+/**
+ * Retrieve all charging stations.
+ *
+ * @route GET /api/admin/chargestations
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 const getChargeStations = async (req, res) => {
   try {
     const stations = await ChargingStation.find().sort({ createdAt: -1 });
@@ -146,7 +214,14 @@ const getChargeStations = async (req, res) => {
   }
 };
 
-// GET /api/admin/chargestation/:id
+/**
+ * Retrieve a charging station by ID.
+ *
+ * @route GET /api/admin/chargestation/:id
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 const chargestationById = async (req, res) => {
   try {
     const station = await ChargingStation.findById(req.params.id);
@@ -158,7 +233,14 @@ const chargestationById = async (req, res) => {
   }
 };
 
-// PUT /api/admin/chargestation/:id
+/**
+ * Update a charging station by ID.
+ *
+ * @route PUT /api/admin/chargestation/:id
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 const updateChargestation = async (req, res) => {
   try {
     const updated = await ChargingStation.findByIdAndUpdate(
@@ -173,7 +255,14 @@ const updateChargestation = async (req, res) => {
   }
 };
 
-// DELETE /api/admin/chargestation/:id
+/**
+ * Delete a charging station by ID.
+ *
+ * @route DELETE /api/admin/chargestation/:id
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 const deleteChargestation = async (req, res) => {
   try {
     await ChargingStation.findByIdAndDelete(req.params.id);
@@ -184,7 +273,14 @@ const deleteChargestation = async (req, res) => {
   }
 };
 
-// GET /api/admin/bookings
+/**
+ * Retrieve all bookings, including user and station details.
+ *
+ * @route GET /api/admin/bookings
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 const getAllBookings = async (req, res) => {
   try {
     const bookings = await Booking.find()
@@ -198,7 +294,14 @@ const getAllBookings = async (req, res) => {
   }
 };
 
-// GET /api/admin/stats
+/**
+ * Retrieve dashboard statistics for admin view.
+ *
+ * @route GET /api/admin/stats
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 const getStats = async (req, res) => {
   try {
     const [userCount, stationCount, bookingCount, recentBookings] = await Promise.all([

@@ -1,3 +1,8 @@
+/**
+ * Charge station schema definition.
+ *
+ * Stores station details used by users and admin management.
+ */
 const mongoose = require('mongoose');
 
 const chargeStationSchema = new mongoose.Schema({

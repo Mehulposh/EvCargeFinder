@@ -6,6 +6,15 @@ import Toast, { useToast } from '../Components/Toast';
 import Logo from '../Components/Logo';
 import NavBar from '../Components/NavBar';
 
+/**
+ * Signup page component for user account creation.
+ *
+ * Renders the signup form and handles client-side validation,
+ * API submission, toast notifications, and navigation after signup.
+ *
+ * @component
+ * @returns {JSX.Element} The signup form UI.
+ */
 const Signup = () => {
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
   const [loading, setLoading] = useState(false);
@@ -13,9 +22,20 @@ const Signup = () => {
   const navigate = useNavigate();
   const { toasts, toast } = useToast();
 
+  /**
+   * Update the signup form state when an input value changes.
+   *
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The input change event.
+   */
   const handleChange = (e) =>
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
+  /**
+   * Submit the signup form and create a new user account.
+   *
+   * @param {React.FormEvent<HTMLFormElement>} e - The form submit event.
+   * @returns {Promise<void>} A promise that resolves after submission.
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (form.password !== form.confirm) {

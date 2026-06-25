@@ -1,9 +1,22 @@
+/**
+ * User controller module.
+ *
+ * Handles user authentication, charging station lookup, booking creation,
+ * booking retrieval, cancellation, and scheduled booking completion logic.
+ */
 const User = require('../models/UserSchema');
 const ChargingStation = require('../models/ChargeStation');
 const Booking = require('../models/BookingSchema');
-const {signToken} = require('../helper/jwtSign.js')
+const { signToken } = require('../helper/jwtSign.js');
 
-// POST /api/user/login
+/**
+ * Authenticate a user and return a JWT token.
+ *
+ * @route POST /api/user/login
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 const ulogin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -32,7 +45,14 @@ const ulogin = async (req, res) => {
   }
 };
 
-// POST /api/user/signup
+/**
+ * Register a new user account and return authentication details.
+ *
+ * @route POST /api/user/signup
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 const usignup = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -58,7 +78,14 @@ const usignup = async (req, res) => {
   }
 };
 
-// GET /api/user/chargestations
+/**
+ * Fetch all available charging stations.
+ *
+ * @route GET /api/user/chargestations
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 const getChargestations = async (req, res) => {
   try {
     const stations = await ChargingStation.find();
@@ -69,8 +96,14 @@ const getChargestations = async (req, res) => {
   }
 };
 
-// GET /api/user/slots/:stationId?date=YYYY-MM-DD
-// Returns booked time slots for a station on a given date
+/**
+ * Retrieve booked time slots for a station on a given date.
+ *
+ * @route GET /api/user/slots/:stationId
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 const getBookedSlots = async (req, res) => {
   try {
     const { stationId } = req.params;
@@ -85,7 +118,7 @@ const getBookedSlots = async (req, res) => {
       status: { $ne: 'cancelled' }
     }).select('time -_id');
 
-    const bookedTimes = bookings.map(b => b.time);
+    const bookedTimes = bookings.map((b) => b.time);
     res.json({ bookedSlots: bookedTimes });
   } catch (err) {
     console.error('Error fetching booked slots:', err);
@@ -93,7 +126,14 @@ const getBookedSlots = async (req, res) => {
   }
 };
 
-// POST /api/user/booking
+/**
+ * Create a booking for the authenticated user.
+ *
+ * @route POST /api/user/booking
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 const userBooking = async (req, res) => {
   try {
     const { stationId, stationName, phno, date, time, address } = req.body;
@@ -106,7 +146,7 @@ const userBooking = async (req, res) => {
     if (!stationId || !date || !time || !phno)
       return res.status(400).json({ message: 'stationId, date, time and phno are required.' });
 
-    // Check slot is not already taken
+    // Ensure the slot is still available
     const conflict = await Booking.findOne({
       stationId,
       date,
@@ -141,7 +181,14 @@ const userBooking = async (req, res) => {
   }
 };
 
-// GET /api/user/bookings  (admin: all bookings)
+/**
+ * Retrieve all bookings for admin-style access.
+ *
+ * @route GET /api/user/bookings
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 const bookings = async (req, res) => {
   try {
     const data = await Booking.find()
@@ -155,7 +202,15 @@ const bookings = async (req, res) => {
   }
 };
 
-// GET /api/user/mybookings  (logged-in user's own bookings)
+/**
+ * Retrieve the authenticated user's own bookings.
+ * Also auto-completes any past upcoming bookings before returning results.
+ *
+ * @route GET /api/user/mybookings
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 const myBookings = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -173,7 +228,14 @@ const myBookings = async (req, res) => {
   }
 };
 
-// PATCH /api/user/booking/:id/cancel
+/**
+ * Cancel a booking owned by the authenticated user.
+ *
+ * @route PATCH /api/user/booking/:id/cancel
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>}
+ */
 const cancelBooking = async (req, res) => {
   try {
     const { id } = req.params;
@@ -203,7 +265,12 @@ const cancelBooking = async (req, res) => {
   }
 };
 
-// Auto-complete past bookings (called on mybookings fetch)
+/**
+ * Mark past upcoming bookings as completed for a specific user.
+ *
+ * @param {string} userId - The ID of the user whose bookings should be updated.
+ * @returns {Promise<void>}
+ */
 const autoCompletePastBookings = async (userId) => {
   try {
     const today = new Date().toISOString().split('T')[0]; // "YYYY-MM-DD"

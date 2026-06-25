@@ -1,15 +1,19 @@
+/**
+ * Admin route definitions.
+ *
+ * Exposes public authentication routes and protected admin management routes.
+ */
 const express = require('express');
 const Router = express.Router();
 const adminController = require('../controllers/adminController');
 const adminAuth = require('../middleware/adminAuth');
 
-// Public routes
+// Public authentication routes
 Router.post('/login', adminController.alogin);
 Router.post('/signup', adminController.asignup);
 
-// Protected admin routes
+// Protected admin management routes
 Router.get('/stats', adminAuth, adminController.getStats);
-
 Router.get('/users', adminAuth, adminController.getUsers);
 Router.get('/user/:id', adminAuth, adminController.getUserById);
 Router.get('/user/:id/bookings', adminAuth, adminController.getUserBookings);

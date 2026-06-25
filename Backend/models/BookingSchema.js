@@ -1,3 +1,8 @@
+/**
+ * Booking schema definition.
+ *
+ * Represents a user's EV charging reservation for a station at a specific date/time.
+ */
 const mongoose = require('mongoose');
 
 const bookingSchema = new mongoose.Schema({
@@ -55,10 +60,11 @@ const bookingSchema = new mongoose.Schema({
     enum: ['upcoming', 'completed', 'cancelled'],
     default: 'upcoming'
   }
-
 }, { timestamps: true });
 
-// Compound index to prevent double-booking same station + date + time
+/**
+ * Prevent duplicate bookings for the same station, date, and time.
+ */
 bookingSchema.index({ stationId: 1, date: 1, time: 1 }, { unique: true });
 
 module.exports = mongoose.model('Booking', bookingSchema);
