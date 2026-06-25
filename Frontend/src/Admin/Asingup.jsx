@@ -4,7 +4,6 @@ import api from '../api/api';
 import { useAuth } from '../context/AuthContet';
 import Toast, { useToast } from '../Components/Toast';
 import NavBar from '../Components/NavBar';
-import Logo from '../Components/Logo';
 
 const Asingup = () => {
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
@@ -41,7 +40,11 @@ const Asingup = () => {
       <div className='flex flex-1 items-center justify-center px-4 mt-3'>
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <Logo/>
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-slate-900 rounded-2xl mb-4">
+              <svg className="w-8 h-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
             <h1 className="text-2xl font-bold text-slate-900">Create Admin Account</h1>
             <p className="text-slate-500 text-sm mt-1">Set up your admin dashboard access</p>
           </div>
