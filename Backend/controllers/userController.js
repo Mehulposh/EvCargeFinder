@@ -159,6 +159,10 @@ const bookings = async (req, res) => {
 const myBookings = async (req, res) => {
   try {
     const userId = req.user.id;
+
+    // Auto-complete any past upcoming bookings first
+    await autoCompletePastBookings(userId);
+    
     const data = await Booking.find({ userId })
       .populate('stationId', 'name address_components phone_number')
       .sort({ date: -1, time: -1 });
@@ -220,5 +224,6 @@ module.exports = {
   userBooking,
   bookings,
   myBookings,
-  cancelBooking
+  cancelBooking,
+  autoCompletePastBookings
 };
